@@ -5,7 +5,7 @@ A kid-friendly chess game that runs in the browser as a single `index.html` file
 **Play it:** https://jooziv.github.io/checkmate-quest/
 
 ## Play chess
-- 2 players on one screen, or you vs the computer (Beginner, Easy, Medium, Hard)
+- 2 players on one screen, or you vs the computer (Very Easy, Beginner, Easy, Medium, Hard)
 - Full rules: castling, en passant, promotion, check, checkmate and draws (stalemate, threefold repetition, 50-move rule, insufficient material)
 - Undo, flip board, captured pieces and move list
 - **Resume codes:** every game has a code such as `G-C2W-2F2G2F25-2823`. It is kept in the page address and updates after every move, so reopening the link continues the game. You can also paste a code into the Resume box.

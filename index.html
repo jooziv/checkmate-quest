@@ -328,6 +328,7 @@
       </div>
       <h4>Computer level</h4>
       <div class="choices c2" id="optLevel">
+        <button data-v="0" style="grid-column: span 2">🐢 Very Easy<small>just learning, so it plays almost randomly</small></button>
         <button data-v="1">🐣 Beginner<small>makes silly mistakes</small></button>
         <button data-v="2">🙂 Easy<small>a friendly game</small></button>
         <button data-v="3">😎 Medium<small>plays carefully</small></button>
@@ -870,6 +871,7 @@ function rootScores(st, moves, depth, s) {
   return out;
 }
 const LEVELS = {
+  0: { name: 'Very Easy', depth: 1, noise: 600, randomPct: 0.85, time: 300, noGrab: true },
   1: { name: 'Beginner', depth: 1, noise: 250, randomPct: 0.35, time: 400 },
   2: { name: 'Easy', depth: 2, noise: 90, randomPct: 0.05, time: 700 },
   3: { name: 'Medium', depth: 3, noise: 20, randomPct: 0, time: 1200 },
@@ -878,14 +880,16 @@ const LEVELS = {
 // avoidKeys: positions already seen (computer avoids repeating when ahead)
 function chooseMove(state, level, rand) {
   rand = rand || Math.random;
-  const L = LEVELS[level] || LEVELS[2];
+  const L = LEVELS[level] != null ? LEVELS[level] : LEVELS[2];
   const st = cloneState(state);
   const moves = legalMoves(st);
   if (moves.length === 1) return moves[0];
   if (rand() < L.randomPct) {
     // a "beginner" move: random, but grab free captures sometimes
     const caps = moves.filter(m => m.cap);
-    if (caps.length && rand() < 0.5) return caps[Math.floor(rand() * caps.length)];
+    if (!L.noGrab && caps.length && rand() < 0.5) return caps[Math.floor(rand() * caps.length)];
+    // Very Easy usually ignores captures, so it leaves pieces hanging
+    if (L.noGrab) { const quiet = moves.filter(m => !m.cap); if (quiet.length && rand() < 0.8) return quiet[Math.floor(rand() * quiet.length)]; }
     return moves[Math.floor(rand() * moves.length)];
   }
   const s = new Searcher(Date.now() + L.time);
@@ -1296,7 +1300,7 @@ var E = module.exports;
 
   // ================= Full games =================
   const ALPH = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const LEVEL_NAMES = { 1: '🐣 Beginner', 2: '🙂 Easy', 3: '😎 Medium', 4: '🔥 Hard' };
+  const LEVEL_NAMES = { 0: '🐢 Very Easy', 1: '🐣 Beginner', 2: '🙂 Easy', 3: '😎 Medium', 4: '🔥 Hard' };
   let G = null;                 // { mode:'pvp'|'cpu', level, human:'w'|'b', g, flip }
   let gSel = -1, gTargets = [], thinking = false, thinkToken = 0, overShown = false;
   let gstats = store.get('cmq-gstats', { w: 0, l: 0, d: 0 });
@@ -1311,7 +1315,7 @@ var E = module.exports;
   }
   function decodeGame(code) {
     const c = String(code || '').trim().toUpperCase().replace(/\s+/g, '');
-    const m = c.match(/^G-(P|C([1-4])([WB]))(?:-([A-Z0-9-]*))?$/);
+    const m = c.match(/^G-(P|C([0-4])([WB]))(?:-([A-Z0-9-]*))?$/);
     if (!m) return null;
     const mv = (m[4] || '').replace(/-/g, '');
     if (mv.length % 2) return null;
@@ -1554,7 +1558,7 @@ var E = module.exports;
   $('gCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') submitGameCode(); });
 
   // ---------- New game dialog ----------
-  const setupSel = store.get('cmq-setup', { mode: 'cpu', color: 'w', level: 2 });
+  const setupSel = store.get('cmq-setup', { mode: 'cpu', color: 'w', level: 0 });
   function syncSetup() {
     document.querySelectorAll('#optMode button').forEach(b => b.classList.toggle('on', b.dataset.v === setupSel.mode));
     document.querySelectorAll('#optColor button').forEach(b => b.classList.toggle('on', b.dataset.v === setupSel.color));
